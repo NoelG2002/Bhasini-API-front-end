@@ -2,46 +2,71 @@
 import { useState } from "react";
 
 export default function Home() {
-  const [text, setText] = useState("");
+  const [inputText, setInputText] = useState("");
   const [translatedText, setTranslatedText] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [sourceLang, setSourceLang] = useState("en");
+  const [targetLang, setTargetLang] = useState("hi");
 
   const handleTranslate = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("https://speech-translation.onrender.com/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-      const data = await response.json();
-      setTranslatedText(data.translated_text);
-    } catch (error) {
-      console.error("Translation failed:", error);
-      setTranslatedText("Translation error. Try again.");
-    }
-    setLoading(false);
+    const response = await fetch("https://speech-translation.onrender.com/translate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        source_text: inputText,
+        source_lang: sourceLang,
+        target_lang: targetLang,
+      }),
+    });
+
+    const data = await response.json();
+    setTranslatedText(data.translated_text || "Translation failed.");
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
-      <h1 className="text-2xl font-bold">Bhasini Translator</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <h1 className="text-2xl font-bold mb-4">Bhashini Translation</h1>
+
+      {/* Input Textbox */}
       <textarea
-        className="w-96 h-24 p-2 border border-gray-400 rounded mt-4"
-        placeholder="Enter text to translate..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
+        className="border p-2 rounded w-full max-w-md"
+        rows={4}
+        placeholder="Enter your text"
+        value={inputText}
+        onChange={(e) => setInputText(e.target.value)}
       />
-      <button
-        className="bg-blue-500 text-white px-4 py-2 rounded mt-3"
-        onClick={handleTranslate}
-        disabled={loading}
-      >
-        {loading ? "Translating..." : "Translate"}
+
+      {/* Language Selection */}
+      <div className="flex space-x-4 mt-4">
+        <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
+          <option value="en">English</option>
+          <option value="hi">Hindi</option>
+          <option value="ta">Tamil</option>
+          <option value="bn">Bengali</option>
+          {/* Add more languages */}
+        </select>
+
+        <span>➡️</span>
+
+        <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
+          <option value="hi">Hindi</option>
+          <option value="en">English</option>
+          <option value="ta">Tamil</option>
+          <option value="bn">Bengali</option>
+          {/* Add more languages */}
+        </select>
+      </div>
+
+      {/* Translate Button */}
+      <button className="bg-blue-500 text-white px-4 py-2 mt-4 rounded" onClick={handleTranslate}>
+        Translate
       </button>
+
+      {/* Display Translation */}
       {translatedText && (
-        <div className="mt-4 p-4 bg-white border rounded shadow">
-          <strong>Translated Text:</strong>
+        <div className="mt-4 p-3 border bg-white rounded max-w-md">
+          <strong>Translation:</strong>
           <p>{translatedText}</p>
         </div>
       )}
