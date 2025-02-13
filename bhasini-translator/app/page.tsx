@@ -1,85 +1,113 @@
 "use client";
+
 import { useState } from "react";
 
 export default function Home() {
-  const [text, setText] = useState("");
-  const [translatedText, setTranslatedText] = useState("");
-  const [sourceLang, setSourceLang] = useState("en");
-  const [targetLang, setTargetLang] = useState("hi");
+    const [text, setText] = useState("");
+    const [translatedText, setTranslatedText] = useState("");
+    const [selectedSourceLang, setSelectedSourceLang] = useState(1); // Default: Hindi
+    const [selectedTargetLang, setSelectedTargetLang] = useState(7); // Default: Tamil
 
-  const handleTranslate = async () => {
-    if (!text) {
-      alert("Please enter text to translate");
-      return;
-    }
+    // Language options (should match backend's numbering)
+    const languages = [
+        { id: 1, name: "Hindi" },
+        { id: 2, name: "Gom" },
+        { id: 3, name: "Kannada" },
+        { id: 4, name: "Dogri" },
+        { id: 5, name: "Bodo" },
+        { id: 6, name: "Urdu" },
+        { id: 7, name: "Tamil" },
+        { id: 8, name: "Kashmiri" },
+        { id: 9, name: "Assamese" },
+        { id: 10, name: "Bengali" },
+        { id: 11, name: "Marathi" },
+        { id: 12, name: "Sindhi" },
+        { id: 13, name: "Maithili" },
+        { id: 14, name: "Punjabi" },
+        { id: 15, name: "Malayalam" },
+        { id: 16, name: "Manipuri" },
+        { id: 17, name: "Telugu" },
+        { id: 18, name: "Sanskrit" },
+        { id: 19, name: "Nepali" },
+        { id: 20, name: "Santali" },
+        { id: 21, name: "Gujarati" },
+        { id: 22, name: "Odia" },
+    ];
 
-    try {
-      const response = await fetch("https://speech-translation.onrender.com/translate/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          source_text: text,
-          source_lang: sourceLang,
-          target_lang: targetLang
-        }),
-      });
+    // Handle translation request
+    const handleTranslate = async () => {
+        if (!text.trim()) {
+            alert("Please enter text to translate!");
+            return;
+        }
 
-      const data = await response.json();
-      if (response.ok) {
-        setTranslatedText(data.translated_text);
-      } else {
-        alert(`Error: ${data.detail}`);
-      }
-    } catch (error) {
-      console.error("Translation error:", error);
-      alert("Failed to translate. Check console for details.");
-    }
-  };
+        const response = await fetch("https://speech-translation.onrender.com/scaler/translate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                source_language: selectedSourceLang,
+                content: text,
+                target_language: selectedTargetLang
+            })
+        });
 
-  return (
-    <div className="flex flex-col items-center p-4">
-      <h1 className="text-2xl font-bold mb-4">Multilingual Translator</h1>
+        const data = await response.json();
+        if (data.status_code === 200) {
+            setTranslatedText(data.translated_content);
+        } else {
+            alert("Translation failed. Please try again!");
+        }
+    };
 
-      <input
-        type="text"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Enter your text"
-        className="border p-2 rounded w-80"
-      />
+    return (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+            <h1 className="text-2xl font-bold mb-4">Bhashini Translator</h1>
 
-      <div className="flex mt-2">
-        <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
-          <option value="en">English</option>
-          <option value="hi">Hindi</option>
-          <option value="ta">Tamil</option>
-          <option value="ml">Malayalam</option>
-        </select>
+            {/* Source Language Dropdown */}
+            <select 
+                className="mb-2 p-2 border rounded"
+                onChange={(e) => setSelectedSourceLang(parseInt(e.target.value))}
+                value={selectedSourceLang}
+            >
+                {languages.map((lang) => (
+                    <option key={lang.id} value={lang.id}>{lang.name}</option>
+                ))}
+            </select>
 
-        <span className="mx-2">➡️</span>
+            {/* Target Language Dropdown */}
+            <select 
+                className="mb-2 p-2 border rounded"
+                onChange={(e) => setSelectedTargetLang(parseInt(e.target.value))}
+                value={selectedTargetLang}
+            >
+                {languages.map((lang) => (
+                    <option key={lang.id} value={lang.id}>{lang.name}</option>
+                ))}
+            </select>
 
-        <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
-          <option value="hi">Hindi</option>
-          <option value="en">English</option>
-          <option value="ta">Tamil</option>
-          <option value="ml">Malayalam</option>
-        </select>
-      </div>
+            {/* Input Text */}
+            <textarea
+                className="p-2 border rounded w-96 h-24"
+                placeholder="Enter your text here..."
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+            />
 
-      <button
-        onClick={handleTranslate}
-        className="bg-blue-500 text-white px-4 py-2 mt-4 rounded"
-      >
-        Translate
-      </button>
+            {/* Translate Button */}
+            <button 
+                className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
+                onClick={handleTranslate}
+            >
+                Translate
+            </button>
 
-      {translatedText && (
-        <p className="mt-4 border p-2 rounded w-80 bg-gray-100">
-          <strong>Translation:</strong> {translatedText}
-        </p>
-      )}
-    </div>
-  );
+            {/* Translated Output */}
+            {translatedText && (
+                <div className="mt-4 p-4 border rounded bg-white w-96">
+                    <h2 className="text-lg font-bold">Translated Text:</h2>
+                    <p>{translatedText}</p>
+                </div>
+            )}
+        </div>
+    );
 }
