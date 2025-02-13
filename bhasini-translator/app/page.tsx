@@ -26,7 +26,7 @@ const App = () => {
   // ✅ Translate Text  
   const handleTranslate = async () => {  
     try {  
-      const response = await axios.post(`${API_BASE_URL}/translate`, {  
+      const response = await axios.post(`${API_BASE_URL}/scaler/translate`, {  
         source_language: sourceLang,  
         content: text,  
         target_language: targetLang  
