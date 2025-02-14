@@ -46,25 +46,33 @@ const App = () => {
 
   // ✅ Speech-to-Text (STT) Function
   const handleSTT = async () => {
-    if (!selectedFile) {
-      alert("Please select an audio file!");
-      return;
-    }
+  if (!selectedFile) {
+    alert("Please select an audio file!");
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append("audio", selectedFile);
-    formData.append("source_language", sourceLang.toString());
+  const formData = new FormData();
+  formData.append("audio", selectedFile);
+  formData.append("source_language", sourceLang.toString());
 
-    try {
-      const response = await axios.post(`${API_BASE_URL}/bhashini/stt`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+  try {
+    console.log("Sending STT request with:", formData);
 
-      setSttResult(response.data.transcription || "STT Failed");
-    } catch (error) {
-      console.error("STT Error:", error);
-    }
-  };
+    const response = await axios.post(`${API_BASE_URL}/bhashini/stt`, formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+
+    console.log("STT Response:", response.data);
+
+    setSttResult(response.data.transcription || "STT Failed");
+  } catch (error) {
+    console.error("STT Error:", error);
+
+    // Provide more user-friendly feedback
+    alert("Failed to process speech-to-text. Please try again.");
+  }
+};
+
 
   // ✅ Text-to-Speech (TTS)
   const handleTTS = async () => {
