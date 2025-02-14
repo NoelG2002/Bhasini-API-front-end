@@ -55,7 +55,7 @@ const App = () => {
     formData.append("audio", selectedFile);  
 
     try {  
-      const response = await axios.post(`${API_BASE_URL}/stt?language=${sourceLang}`, formData);  
+      const response = await axios.post(`${API_BASE_URL}/bhashini/stt?language=${sourceLang}`, formData);  
       setSttResult(response.data.transcription || "STT Failed");  
     } catch (error) {  
       console.error("STT Error:", error);  
@@ -65,7 +65,7 @@ const App = () => {
   // ✅ Text-to-Speech (TTS)  
   const handleTTS = async () => {  
     try {  
-      const response = await axios.post(`${API_BASE_URL}/tts`, {  
+      const response = await axios.post(`${API_BASE_URL}/bhashini/tts`, {  
         language: ttsLang,  
         text: text  
       });  
