@@ -62,10 +62,11 @@ const App = () => {
     });
 
     setSttResult(response.data.transcription || "STT failed to process.");
-  } catch (error) {
-    console.error("STT Error:", error.response?.data || error.message);
-    alert("Speech-to-Text failed.");
-  }
+  } catch (error: any) {
+  console.error("STT Error:", error?.response?.data || error?.message || error);
+  alert("Speech-to-Text failed.");
+}
+
 };
 
 
@@ -88,10 +89,11 @@ const App = () => {
     } else {
       alert("TTS failed.");
     }
-  } catch (error) {
-    console.error("TTS Error:", error.response?.data || error.message);
-    alert("Text-to-Speech failed.");
-  }
+  } catch (error: any) {
+  console.error("TTS Error:", error?.response?.data || error?.message || error);
+  alert("Text-to-Speech failed.");
+}
+
 };
 
 
