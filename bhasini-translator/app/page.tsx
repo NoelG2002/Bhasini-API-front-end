@@ -1,41 +1,41 @@
-"use client";  
-import React, { useState } from "react";  
-import axios from "axios";  
+"use client";
+import React, { useState } from "react";
+import axios from "axios";
 
-const API_BASE_URL = "https://speech-translation.onrender.com"; // FastAPI Backend URL  
+const API_BASE_URL = "https://speech-translation.onrender.com"; // Update with your FastAPI URL
 
-const App = () => {  
-  const [text, setText] = useState<string>("");  
-  const [translatedText, setTranslatedText] = useState<string>("");  
-  const [sttResult, setSttResult] = useState<string>("");  
-  const [ttsAudio, setTtsAudio] = useState<string | null>(null);  
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);  
-  const [sourceLang, setSourceLang] = useState<number>(0);  
-  const [targetLang, setTargetLang] = useState<number>(1);  
-  const [ttsLang, setTtsLang] = useState<number>(1);  
+const App = () => {
+  const [text, setText] = useState<string>("");
+  const [translatedText, setTranslatedText] = useState<string>("");
+  const [sttResult, setSttResult] = useState<string>("");
+  const [ttsAudio, setTtsAudio] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [sourceLang, setSourceLang] = useState<number>(0);
+  const [targetLang, setTargetLang] = useState<number>(1);
+  const [ttsLang, setTtsLang] = useState<number>(1);
 
-  // Language options  
-  const languages: { [key: number]: string } = {  
-    0: "English", 1: "Hindi", 2: "Gom", 3: "Kannada", 4: "Dogri",  
-    5: "Bodo", 6: "Urdu", 7: "Tamil", 8: "Kashmiri", 9: "Assamese",  
-    10: "Bengali", 11: "Marathi", 12: "Sindhi", 13: "Maithili", 14: "Punjabi",  
-    15: "Malayalam", 16: "Manipuri", 17: "Telugu", 18: "Sanskrit", 19: "Nepali",  
-    20: "Santali", 21: "Gujarati", 22: "Odia"  
-  };  
+  // Language options
+  const languages: { [key: number]: string } = {
+    0: "English", 1: "Hindi", 2: "Gom", 3: "Kannada", 4: "Dogri",
+    5: "Bodo", 6: "Urdu", 7: "Tamil", 8: "Kashmiri", 9: "Assamese",
+    10: "Bengali", 11: "Marathi", 12: "Sindhi", 13: "Maithili", 14: "Punjabi",
+    15: "Malayalam", 16: "Manipuri", 17: "Telugu", 18: "Sanskrit", 19: "Nepali",
+    20: "Santali", 21: "Gujarati", 22: "Odia"
+  };
 
-  // ✅ Translate Text  
-  const handleTranslate = async () => {  
-    try {  
-      const response = await axios.post(`${API_BASE_URL}/bhashini/translate`, {  
-        source_language: sourceLang,  
-        content: text,  
-        target_language: targetLang  
-      });  
-      setTranslatedText(response.data.translated_content || "Translation Failed");  
-    } catch (error) {  
-      console.error("Translation error:", error);  
-    }  
-  };  
+  // ✅ Translate Text
+  const handleTranslate = async () => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/bhashini/translate`, {
+        source_language: sourceLang,
+        content: text,
+        target_language: targetLang
+      });
+      setTranslatedText(response.data.translated_content || "Translation Failed");
+    } catch (error) {
+      console.error("Translation error:", error);
+    }
+  };
 
   // ✅ Handle File Selection for STT
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,90 +44,88 @@ const App = () => {
     }
   };
 
-  // ✅ Speech-to-Text (STT) (Language in Body)
-  async function sendAudioForSTT(audioFile, sourceLanguage) {
+  // ✅ Speech-to-Text (STT) Function
+  const handleSTT = async () => {
+    if (!selectedFile) {
+      alert("Please select an audio file!");
+      return;
+    }
+
     const formData = new FormData();
-    formData.append("audio", audioFile);  // Attach audio file
-    formData.append("source_language", sourceLanguage);  // Attach language as a text field
+    formData.append("audio", selectedFile);
+    formData.append("source_language", sourceLang.toString());
 
     try {
-        const response = await fetch("http://your-fastapi-server.com/bhashini/stt", {
-            method: "POST",
-            body: formData
-        });
+      const response = await axios.post(`${API_BASE_URL}/bhashini/stt`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
 
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log("Transcription:", data.transcription);
-        return data.transcription;
+      setSttResult(response.data.transcription || "STT Failed");
     } catch (error) {
-        console.error("STT Request Failed:", error);
-        return null;
+      console.error("STT Error:", error);
     }
-}
-  // ✅ Text-to-Speech (TTS)  
-  const handleTTS = async () => {  
-    try {  
-      const response = await axios.post(`${API_BASE_URL}/tts`, {  
-        language: ttsLang,  
-        text: text  
-      });  
+  };
 
-      if (response.data.audio_content) {  
-        const audioBlob = new Blob(  
-          [Uint8Array.from(atob(response.data.audio_content), (c) => c.charCodeAt(0))],  
-          { type: "audio/wav" }  
-        );  
-        setTtsAudio(URL.createObjectURL(audioBlob));  
-      } else {  
-        alert("TTS Failed");  
-      }  
-    } catch (error) {  
-      console.error("TTS Error:", error);  
-    }  
-  };  
+  // ✅ Text-to-Speech (TTS)
+  const handleTTS = async () => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/tts`, {
+        language: ttsLang,
+        text: text
+      });
 
-  return (  
-    <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>  
-      <h2>Bhashini Language Processing</h2>  
+      if (response.data.audio_content) {
+        const audioBlob = new Blob(
+          [Uint8Array.from(atob(response.data.audio_content), (c) => c.charCodeAt(0))],
+          { type: "audio/wav" }
+        );
+        setTtsAudio(URL.createObjectURL(audioBlob));
+      } else {
+        alert("TTS Failed");
+      }
+    } catch (error) {
+      console.error("TTS Error:", error);
+    }
+  };
 
-      {/* Input Text */}  
-      <textarea  
-        rows={4}  
-        placeholder="Enter text..."  
-        value={text}  
-        onChange={(e) => setText(e.target.value)}  
-        style={{ width: "100%", padding: "10px", marginBottom: "10px" }}  
-      />  
+  return (
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
+      <h2>Bhashini Language Processing</h2>
 
-      {/* Language Selection */}  
-      <div>  
-        <label>From: </label>  
-        <select value={sourceLang} onChange={(e) => setSourceLang(Number(e.target.value))}>  
-          {Object.entries(languages).map(([code, name]) => (  
-            <option key={code} value={code}>{name}</option>  
-          ))}  
-        </select>  
+      {/* Input Text */}
+      <textarea
+        rows={4}
+        placeholder="Enter text..."
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
+      />
 
-        <label style={{ marginLeft: "10px" }}>To: </label>  
-        <select value={targetLang} onChange={(e) => setTargetLang(Number(e.target.value))}>  
-          {Object.entries(languages).map(([code, name]) => (  
-            <option key={code} value={code}>{name}</option>  
-          ))}  
-        </select>  
+      {/* Language Selection */}
+      <div>
+        <label>From: </label>
+        <select value={sourceLang} onChange={(e) => setSourceLang(Number(e.target.value))}>
+          {Object.entries(languages).map(([code, name]) => (
+            <option key={code} value={code}>{name}</option>
+          ))}
+        </select>
 
-        <button onClick={handleTranslate} style={{ marginLeft: "10px" }}>Translate</button>  
-      </div>  
+        <label style={{ marginLeft: "10px" }}>To: </label>
+        <select value={targetLang} onChange={(e) => setTargetLang(Number(e.target.value))}>
+          {Object.entries(languages).map(([code, name]) => (
+            <option key={code} value={code}>{name}</option>
+          ))}
+        </select>
 
-      {/* Translated Text */}  
-      {translatedText && (  
-        <div style={{ marginTop: "10px", padding: "10px", background: "#f1f1f1" }}>  
-          <strong>Translated:</strong> {translatedText}  
-        </div>  
-      )}  
+        <button onClick={handleTranslate} style={{ marginLeft: "10px" }}>Translate</button>
+      </div>
+
+      {/* Translated Text */}
+      {translatedText && (
+        <div style={{ marginTop: "10px", padding: "10px", background: "#f1f1f1" }}>
+          <strong>Translated:</strong> {translatedText}
+        </div>
+      )}
 
       {/* Speech-to-Text (STT) */}
       <div style={{ marginTop: "20px" }}>
@@ -143,29 +141,29 @@ const App = () => {
         </div>
       )}
 
-      {/* Text-to-Speech (TTS) */}  
-      <div style={{ marginTop: "20px" }}>  
-        <h3>Text-to-Speech (TTS)</h3>  
-        <label>Choose Language: </label>  
-        <select value={ttsLang} onChange={(e) => setTtsLang(Number(e.target.value))}>  
-          {Object.entries(languages).map(([code, name]) => (  
-            <option key={code} value={code}>{name}</option>  
-          ))}  
-        </select>  
-        <button onClick={handleTTS} style={{ marginLeft: "10px" }}>Convert to Speech</button>  
-      </div>  
+      {/* Text-to-Speech (TTS) */}
+      <div style={{ marginTop: "20px" }}>
+        <h3>Text-to-Speech (TTS)</h3>
+        <label>Choose Language: </label>
+        <select value={ttsLang} onChange={(e) => setTtsLang(Number(e.target.value))}>
+          {Object.entries(languages).map(([code, name]) => (
+            <option key={code} value={code}>{name}</option>
+          ))}
+        </select>
+        <button onClick={handleTTS} style={{ marginLeft: "10px" }}>Convert to Speech</button>
+      </div>
 
-      {/* Play Generated Speech */}  
-      {ttsAudio && (  
-        <div style={{ marginTop: "10px" }}>  
-          <audio controls>  
-            <source src={ttsAudio} type="audio/wav" />  
-            Your browser does not support the audio element.  
-          </audio>  
-        </div>  
-      )}  
-    </div>  
-  );  
-};  
+      {/* Play Generated Speech */}
+      {ttsAudio && (
+        <div style={{ marginTop: "10px" }}>
+          <audio controls>
+            <source src={ttsAudio} type="audio/wav" />
+            Your browser does not support the audio element.
+          </audio>
+        </div>
+      )}
+    </div>
+  );
+};
 
-export default App;  
+export default App;
