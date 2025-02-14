@@ -9,6 +9,7 @@ const App = () => {
   const [translatedText, setTranslatedText] = useState<string>("");
   const [sttResult, setSttResult] = useState<string>("");
   const [ttsAudio, setTtsAudio] = useState<string | null>(null);
+  
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sourceLang, setSourceLang] = useState<number>(0);
   const [targetLang, setTargetLang] = useState<number>(1);
@@ -38,6 +39,13 @@ const App = () => {
   };
 
   // ✅ Handle File Selection for STT
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (file) {
+    setSelectedFile(file);
+  }
+};
+
  const handleSTT = async () => {
   if (!selectedFile) {
     alert("Please upload an audio file.");
@@ -48,20 +56,18 @@ const App = () => {
   formData.append("audio", selectedFile);
   formData.append("source_language", "en");
 
-  setLoading(true);
   try {
     const response = await axios.post(`${API_BASE_URL}/bhashini/stt`, formData, {
       headers: { "Content-Type": "multipart/form-data" }
     });
 
-    setTranscription(response.data.transcription);
+    setSttResult(response.data.transcription || "STT failed to process.");
   } catch (error) {
     console.error("STT Error:", error.response?.data || error.message);
     alert("Speech-to-Text failed.");
-  } finally {
-    setLoading(false);
   }
 };
+
 
 
   // ✅ Text-to-Speech (TTS)
@@ -73,18 +79,21 @@ const App = () => {
     });
 
     if (response.data.audio_content) {
-      const audioBlob = new Blob(
-        [Uint8Array.from(atob(response.data.audio_content), c => c.charCodeAt(0))],
-        { type: "audio/mp3" }
-      );
+      // Convert Base64 to Blob properly
+      const audioBlob = new Blob([Uint8Array.from(atob(response.data.audio_content), c => c.charCodeAt(0))], {
+        type: "audio/wav",
+      });
+
       setTtsAudio(URL.createObjectURL(audioBlob));
     } else {
       alert("TTS failed.");
     }
   } catch (error) {
     console.error("TTS Error:", error.response?.data || error.message);
+    alert("Text-to-Speech failed.");
   }
 };
+
 
   return (
     <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
