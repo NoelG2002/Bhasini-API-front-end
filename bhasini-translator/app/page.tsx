@@ -38,51 +38,59 @@ const App = () => {
   };  
 
   // ✅ Handle File Selection for STT  
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {  
-    if (event.target.files) {  
-      setSelectedFile(event.target.files[0]);  
-    }  
-  };  
-
-  // ✅ Speech-to-Text (STT)  
   const handleSTT = async () => {  
-    if (!selectedFile) {  
-      alert("Please select an audio file!");  
-      return;  
-    }  
+  if (!selectedFile) {  
+    alert("Please select an audio file!");  
+    return;  
+  }  
 
-    const formData = new FormData();  
-    formData.append("audio", selectedFile);  
+  const formData = new FormData();  
+  formData.append("audio", selectedFile);  
+  formData.append("language", sttLang); // Ensure language code is sent  
 
-    try {  
-      const response = await axios.post(`${API_BASE_URL}/bhashini/stt?language=${sourceLang}`, formData);  
+  try {  
+    const response = await axios.post(`${API_BASE_URL}/bhashini/stt`, formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });  
+
+    if (response.data.status_code === 200) {  
       setSttResult(response.data.transcription || "STT Failed");  
-    } catch (error) {  
-      console.error("STT Error:", error);  
+    } else {  
+      alert(response.data.message || "STT Processing Error");  
     }  
-  };  
-
+  } catch (error) {  
+    console.error("STT Error:", error);  
+    alert("Error processing STT. Check console for details.");
+  }  
+};
   // ✅ Text-to-Speech (TTS)  
   const handleTTS = async () => {  
-    try {  
-      const response = await axios.post(`${API_BASE_URL}/bhashini/tts`, {  
-        language: ttsLang,  
-        text: text  
-      });  
+  if (!text) {  
+    alert("Enter text for TTS!");  
+    return;  
+  }  
 
-      if (response.data.audio_content) {  
-        const audioBlob = new Blob(  
-          [Uint8Array.from(atob(response.data.audio_content), (c) => c.charCodeAt(0))],  
-          { type: "audio/wav" }  
-        );  
-        setTtsAudio(URL.createObjectURL(audioBlob));  
-      } else {  
-        alert("TTS Failed");  
-      }  
-    } catch (error) {  
-      console.error("TTS Error:", error);  
+  try {  
+    const response = await axios.post(`${API_BASE_URL}/bhashini/tts`, {  
+      language: ttsLang,  
+      text: text  
+    });  
+
+    if (response.data.status_code === 200 && response.data.audio_content) {  
+      const audioBlob = new Blob(
+        [Uint8Array.from(atob(response.data.audio_content), (c) => c.charCodeAt(0))],
+        { type: "audio/wav" }
+      );  
+
+      setTtsAudio(URL.createObjectURL(audioBlob));  
+    } else {  
+      alert(response.data.message || "TTS Processing Error");  
     }  
-  };  
+  } catch (error) {  
+    console.error("TTS Error:", error);  
+    alert("Error processing TTS. Check console for details.");  
+  }  
+};
 
   return (  
     <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>  
