@@ -25,23 +25,18 @@ const App = () => {
 
   // ✅ Translate Text
   const handleTranslate = async () => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/translate`, {
-        pipelineTasks: [{
-          taskType: "translation",
-          config: {
-            language: {
-              sourceLanguage: sourceLang,
-              targetLanguage: targetLang,
-            },
-          },
-        }],
-      });
-      setTranslatedText(response.data.translated_content || "Translation Failed");
-    } catch (error) {
-      console.error("Translation error:", error);
-    }
-  };
+  try {
+    const response = await axios.post(`${API_BASE_URL}/translate`, {
+      source_language: sourceLang, // Send the source language
+      target_language: targetLang, // Send the target language
+      text: text, // Send the text to be translated
+    });
+    setTranslatedText(response.data.translated_content || "Translation Failed");
+  } catch (error) {
+    console.error("Translation error:", error);
+  }
+};
+
 
   // ✅ Handle File Selection for STT
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
