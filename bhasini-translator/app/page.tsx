@@ -55,7 +55,7 @@ const App = () => {
     formData.append("audio", selectedFile);  
 
     try {  
-      const response = await axios.post(`${API_BASE_URL}/stt?language=${sourceLang}`, formData);  
+      const response = await axios.post(`${API_BASE_URL}/stt');  
       setSttResult(response.data.transcription || "STT Failed");  
     } catch (error) {  
       console.error("STT Error:", error);  
