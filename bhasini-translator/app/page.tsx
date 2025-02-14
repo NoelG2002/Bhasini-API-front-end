@@ -45,27 +45,29 @@ const App = () => {
   };
 
   // ✅ Speech-to-Text (STT) (Language in Body)
-  const handleSTT = async () => {
-    if (!selectedFile) {
-      alert("Please select an audio file!");
-      return;
-    }
-
+  async function sendAudioForSTT(audioFile, sourceLanguage) {
     const formData = new FormData();
-    formData.append("audio", selectedFile);
-    formData.append("source_language", String(sourceLang)); // ✅ Send language in body
+    formData.append("audio", audioFile);  // Attach audio file
+    formData.append("source_language", sourceLanguage);  // Attach language as a text field
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/bhashini/stt`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
-      setSttResult(response.data.transcription || "STT Failed");
+        const response = await fetch("http://your-fastapi-server.com/bhashini/stt", {
+            method: "POST",
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Transcription:", data.transcription);
+        return data.transcription;
     } catch (error) {
-      console.error("STT Error:", error);
+        console.error("STT Request Failed:", error);
+        return null;
     }
-  };
-
-
+}
   // ✅ Text-to-Speech (TTS)  
   const handleTTS = async () => {  
     try {  
