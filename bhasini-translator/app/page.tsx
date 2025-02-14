@@ -5,15 +5,15 @@ import axios from "axios";
 const API_BASE_URL = "https://speech-translation.onrender.com"; // FastAPI Backend URL
 
 const App = () => {
-  const [text, setText] = useState<string>("");
-  const [translatedText, setTranslatedText] = useState<string>("");
-  const [sttResult, setSttResult] = useState<string>("");
-  const [sttLang, setSttLang] = useState<number>(0);
+  const [text, setText] = useState("");
+  const [translatedText, setTranslatedText] = useState("");
+  const [sttResult, setSttResult] = useState("");
+  const [sttLang, setSttLang] = useState(0);
   const [ttsAudio, setTtsAudio] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [sourceLang, setSourceLang] = useState<number>(0);
-  const [targetLang, setTargetLang] = useState<number>(1);
-  const [ttsLang, setTtsLang] = useState<number>(1);
+  const [sourceLang, setSourceLang] = useState(0);
+  const [targetLang, setTargetLang] = useState(1);
+  const [ttsLang, setTtsLang] = useState(1);
 
   // Language options
   const languages: { [key: number]: string } = {
@@ -24,7 +24,7 @@ const App = () => {
     20: "Santali", 21: "Gujarati", 22: "Odia"
   };
 
-  // ✅ Handle File Selection for STT
+  // Handle File Selection for STT
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       setSelectedFile(event.target.files[0]);
@@ -46,35 +46,37 @@ const App = () => {
     }
   };
 
-  // ✅ Speech-to-Text (STT)
- const handleSTT = async () => {
-  if (!selectedFile) {
-    alert("Please select an audio file!");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("audio", selectedFile);
-  formData.append("language", sttLang.toString());  // Ensure it matches FastAPI
-
-  try {
-    const response = await axios.post(`${API_BASE_URL}/bhashini/stt`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-
-    if (response.data.status_code === 200) {
-      setSttResult(response.data.transcription || "STT Failed");
-    } else {
-      alert(response.data.message || "STT Processing Error");
+  // ✅ Speech-to-Text (STT) with FormData
+  const handleSTT = async () => {
+    if (!selectedFile) {
+      alert("Please select an audio file!");
+      return;
     }
-  } catch (error) {
-    console.error("STT Error:", error);
-    alert("Error processing STT. Check console for details.");
-  }
-};
 
+    const formData = new FormData();
+    formData.append("audio", selectedFile);
+    formData.append("language", sttLang.toString()); // Ensure it matches FastAPI
 
-  // ✅ Text-to-Speech (TTS)
+    try {
+      const response = await axios.post(`${API_BASE_URL}/bhashini/stt`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Accept: "application/json"
+        },
+      });
+
+      if (response.data?.transcription) {
+        setSttResult(response.data.transcription);
+      } else {
+        alert(response.data?.message || "STT Processing Error");
+      }
+    } catch (error) {
+      console.error("STT Error:", error);
+      alert("Error processing STT. Check console for details.");
+    }
+  };
+
+  // ✅ Text-to-Speech (TTS) with proper audio blob handling
   const handleTTS = async () => {
     if (!text) {
       alert("Enter text for TTS!");
@@ -85,20 +87,11 @@ const App = () => {
       const response = await axios.post(`${API_BASE_URL}/bhashini/tts`, {
         language: ttsLang,
         text: text
-      });
+      }, { responseType: "blob" }); // Ensures we get an audio file
 
-      if (response.data.status_code === 200 && response.data.audio_content) {
-        const binaryString = atob(response.data.audio_content);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const audioBlob = new Blob([bytes], { type: "audio/wav" });
-
-        setTtsAudio(URL.createObjectURL(audioBlob));
-      } else {
-        alert(response.data.message || "TTS Processing Error");
-      }
+      const audioBlob = new Blob([response.data], { type: "audio/wav" });
+      const audioURL = URL.createObjectURL(audioBlob);
+      setTtsAudio(audioURL);
     } catch (error) {
       console.error("TTS Error:", error);
       alert("Error processing TTS. Check console for details.");
@@ -145,24 +138,22 @@ const App = () => {
       )}
 
       {/* Speech-to-Text (STT) */}
-    
-
       <div style={{ marginTop: "20px" }}>
         <h3>Speech-to-Text (STT)</h3>
         <input type="file" accept="audio/*" onChange={handleFileChange} />
         <button onClick={handleSTT} style={{ marginLeft: "10px" }}>Convert to Text</button>
       </div>
 
-        <div style={{ marginTop: "10px" }}>
-  <label>Choose STT Language: </label>
-  <select value={sttLang} onChange={(e) => setSttLang(Number(e.target.value))}>
-    {Object.entries(languages).map(([code, name]) => (
-      <option key={code} value={code}>{name}</option>
-    ))}
-  </select>
-</div>
+      {/* STT Language Selection */}
+      <div style={{ marginTop: "10px" }}>
+        <label>Choose STT Language: </label>
+        <select value={sttLang} onChange={(e) => setSttLang(Number(e.target.value))}>
+          {Object.entries(languages).map(([code, name]) => (
+            <option key={code} value={code}>{name}</option>
+          ))}
+        </select>
+      </div>
 
-      
       {/* STT Result */}
       {sttResult && (
         <div style={{ marginTop: "10px", padding: "10px", background: "#f1f1f1" }}>
