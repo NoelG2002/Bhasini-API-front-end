@@ -33,18 +33,19 @@ const App = () => {
 
   // ✅ Translate Text
   const handleTranslate = async () => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/bhashini/translate`, {
-        source_language: sourceLang,
-        content: text,
-        target_language: targetLang
-      });
-      setTranslatedText(response.data.translated_content || "Translation Failed");
-    } catch (error) {
-      console.error("Translation error:", error);
-      alert("Translation failed. Please try again.");
-    }
-  };
+  try {
+    const response = await axios.post(`${API_BASE_URL}/bhashini/translate`, {
+      source_language: languages[sourceLang],  // Send language name, not index
+      content: text,
+      target_language: languages[targetLang]  // Send language name, not index
+    });
+    setTranslatedText(response.data.translated_content || "Translation Failed");
+  } catch (error) {
+    console.error("Translation error:", error);
+    alert("Translation failed. Please try again.");
+  }
+};
+
 
   // ✅ Speech-to-Text (STT) with FormData
   const handleSTT = async () => {
