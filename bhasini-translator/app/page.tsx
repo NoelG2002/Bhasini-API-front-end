@@ -26,7 +26,7 @@ const App = () => {
   // ✅ Translate Text
   const handleTranslate = async () => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/bhashini/translate`, {
+      const response = await axios.post(`${API_BASE_URL}/translate`, {
         pipelineTasks: [{
           taskType: "translation",
           config: {
@@ -61,7 +61,7 @@ const App = () => {
     formData.append("sourceLanguage", sourceLang);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/bhashini/stt`, formData, {
+      const response = await axios.post(`${API_BASE_URL}/stt`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
 
@@ -75,7 +75,7 @@ const App = () => {
   // ✅ Text-to-Speech (TTS)
   const handleTTS = async () => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/bhashini/tts`, {
+      const response = await axios.post(`${API_BASE_URL}/tts`, {
         pipelineTasks: [{
           taskType: "tts",
           config: {
