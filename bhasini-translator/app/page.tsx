@@ -38,63 +38,53 @@ const App = () => {
   };
 
   // ✅ Handle File Selection for STT
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setSelectedFile(event.target.files[0]);
-    }
-  };
-
-  // ✅ Speech-to-Text (STT) Function
-  const handleSTT = async () => {
+ const handleSTT = async () => {
   if (!selectedFile) {
-    alert("Please select an audio file!");
+    alert("Please upload an audio file.");
     return;
   }
 
   const formData = new FormData();
   formData.append("audio", selectedFile);
-  formData.append("source_language", sourceLang.toString());
+  formData.append("source_language", "en");
 
+  setLoading(true);
   try {
-    console.log("Sending STT request with:", formData);
-
     const response = await axios.post(`${API_BASE_URL}/bhashini/stt`, formData, {
       headers: { "Content-Type": "multipart/form-data" }
     });
 
-    console.log("STT Response:", response.data);
-
-    setSttResult(response.data.transcription || "STT Failed");
+    setTranscription(response.data.transcription);
   } catch (error) {
-    console.error("STT Error:", error);
-
-    // Provide more user-friendly feedback
-    alert("Failed to process speech-to-text. Please try again.");
+    console.error("STT Error:", error.response?.data || error.message);
+    alert("Speech-to-Text failed.");
+  } finally {
+    setLoading(false);
   }
 };
 
 
   // ✅ Text-to-Speech (TTS)
-  const handleTTS = async () => {
-    try {
-      const response = await axios.post(`${API_BASE_URL}/tts`, {
-        language: ttsLang,
-        text: text
-      });
+ const handleTTS = async () => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/bhashini/tts`, {
+      language: ttsLang,
+      text: text
+    });
 
-      if (response.data.audio_content) {
-        const audioBlob = new Blob(
-          [Uint8Array.from(atob(response.data.audio_content), (c) => c.charCodeAt(0))],
-          { type: "audio/wav" }
-        );
-        setTtsAudio(URL.createObjectURL(audioBlob));
-      } else {
-        alert("TTS Failed");
-      }
-    } catch (error) {
-      console.error("TTS Error:", error);
+    if (response.data.audio_content) {
+      const audioBlob = new Blob(
+        [Uint8Array.from(atob(response.data.audio_content), c => c.charCodeAt(0))],
+        { type: "audio/mp3" }
+      );
+      setTtsAudio(URL.createObjectURL(audioBlob));
+    } else {
+      alert("TTS failed.");
     }
-  };
+  } catch (error) {
+    console.error("TTS Error:", error.response?.data || error.message);
+  }
+};
 
   return (
     <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
