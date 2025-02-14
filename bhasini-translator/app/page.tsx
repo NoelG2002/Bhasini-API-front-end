@@ -148,7 +148,15 @@ const App = () => {
       )}
 
       {/* Speech-to-Text (STT) */}
-      <div style={{ marginTop: "10px" }}>
+    
+
+      <div style={{ marginTop: "20px" }}>
+        <h3>Speech-to-Text (STT)</h3>
+        <input type="file" accept="audio/*" onChange={handleFileChange} />
+        <button onClick={handleSTT} style={{ marginLeft: "10px" }}>Convert to Text</button>
+      </div>
+
+        <div style={{ marginTop: "10px" }}>
   <label>Choose STT Language: </label>
   <select value={sttLang} onChange={(e) => setSttLang(Number(e.target.value))}>
     {Object.entries(languages).map(([code, name]) => (
@@ -157,12 +165,7 @@ const App = () => {
   </select>
 </div>
 
-      <div style={{ marginTop: "20px" }}>
-        <h3>Speech-to-Text (STT)</h3>
-        <input type="file" accept="audio/*" onChange={handleFileChange} />
-        <button onClick={handleSTT} style={{ marginLeft: "10px" }}>Convert to Text</button>
-      </div>
-
+      
       {/* STT Result */}
       {sttResult && (
         <div style={{ marginTop: "10px", padding: "10px", background: "#f1f1f1" }}>
