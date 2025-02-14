@@ -56,7 +56,7 @@ const App = () => {
     formData.append("source_language", String(sourceLang)); // ✅ Send language in body
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/stt`, formData, {
+      const response = await axios.post(`${API_BASE_URL}/bhashini/stt`, formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       setSttResult(response.data.transcription || "STT Failed");
