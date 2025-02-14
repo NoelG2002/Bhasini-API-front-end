@@ -8,6 +8,7 @@ const App = () => {
   const [text, setText] = useState<string>("");
   const [translatedText, setTranslatedText] = useState<string>("");
   const [sttResult, setSttResult] = useState<string>("");
+  const [sttLang, setSttLang] = useState<number>(0);
   const [ttsAudio, setTtsAudio] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sourceLang, setSourceLang] = useState<number>(0);
@@ -147,6 +148,15 @@ const App = () => {
       )}
 
       {/* Speech-to-Text (STT) */}
+      <div style={{ marginTop: "10px" }}>
+  <label>Choose STT Language: </label>
+  <select value={sttLang} onChange={(e) => setSttLang(Number(e.target.value))}>
+    {Object.entries(languages).map(([code, name]) => (
+      <option key={code} value={code}>{name}</option>
+    ))}
+  </select>
+</div>
+
       <div style={{ marginTop: "20px" }}>
         <h3>Speech-to-Text (STT)</h3>
         <input type="file" accept="audio/*" onChange={handleFileChange} />
