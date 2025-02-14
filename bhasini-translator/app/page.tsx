@@ -37,30 +37,34 @@ const App = () => {
     }  
   };  
 
-  // ✅ Handle File Selection for STT  
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {  
-    if (event.target.files) {  
-      setSelectedFile(event.target.files[0]);  
-    }  
-  };  
+  // ✅ Handle File Selection for STT
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setSelectedFile(event.target.files[0]);
+    }
+  };
 
-  // ✅ Speech-to-Text (STT)  
-  const handleSTT = async () => {  
-    if (!selectedFile) {  
-      alert("Please select an audio file!");  
-      return;  
-    }  
+  // ✅ Speech-to-Text (STT) (Language in Body)
+  const handleSTT = async () => {
+    if (!selectedFile) {
+      alert("Please select an audio file!");
+      return;
+    }
 
-    const formData = new FormData();  
-    formData.append("audio", selectedFile);  
+    const formData = new FormData();
+    formData.append("audio", selectedFile);
+    formData.append("source_language", String(sourceLang)); // ✅ Send language in body
 
-    try {  
-      const response = await axios.post(`${API_BASE_URL}/stt?language=${sourceLang}`, formData);  
-      setSttResult(response.data.transcription || "STT Failed");  
-    } catch (error) {  
-      console.error("STT Error:", error);  
-    }  
-  };  
+    try {
+      const response = await axios.post(`${API_BASE_URL}/stt`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      setSttResult(response.data.transcription || "STT Failed");
+    } catch (error) {
+      console.error("STT Error:", error);
+    }
+  };
+
 
   // ✅ Text-to-Speech (TTS)  
   const handleTTS = async () => {  
@@ -123,19 +127,19 @@ const App = () => {
         </div>  
       )}  
 
-      {/* Speech-to-Text (STT) */}  
-      <div style={{ marginTop: "20px" }}>  
-        <h3>Speech-to-Text (STT)</h3>  
-        <input type="file" accept="audio/*" onChange={handleFileChange} />  
-        <button onClick={handleSTT} style={{ marginLeft: "10px" }}>Convert to Text</button>  
-      </div>  
+      {/* Speech-to-Text (STT) */}
+      <div style={{ marginTop: "20px" }}>
+        <h3>Speech-to-Text (STT)</h3>
+        <input type="file" accept="audio/*" onChange={handleFileChange} />
+        <button onClick={handleSTT} style={{ marginLeft: "10px" }}>Convert to Text</button>
+      </div>
 
-      {/* STT Result */}  
-      {sttResult && (  
-        <div style={{ marginTop: "10px", padding: "10px", background: "#f1f1f1" }}>  
-          <strong>Transcribed Text:</strong> {sttResult}  
-        </div>  
-      )}  
+      {/* STT Result */}
+      {sttResult && (
+        <div style={{ marginTop: "10px", padding: "10px", background: "#f1f1f1" }}>
+          <strong>Transcribed Text:</strong> {sttResult}
+        </div>
+      )}
 
       {/* Text-to-Speech (TTS) */}  
       <div style={{ marginTop: "20px" }}>  
