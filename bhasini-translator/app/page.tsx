@@ -10,32 +10,26 @@ const App = () => {
   const [sttResult, setSttResult] = useState<string>("");
   const [ttsAudio, setTtsAudio] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [sourceLang, setSourceLang] = useState<string>("en");
-  const [targetLang, setTargetLang] = useState<string>("hi");
-  const [ttsLang, setTtsLang] = useState<string>("hi");
+  const [sourceLang, setSourceLang] = useState<number>(0);
+  const [targetLang, setTargetLang] = useState<number>(1);
+  const [ttsLang, setTtsLang] = useState<number>(1);
 
   // Language options
-  const languages: { [key: string]: string } = {
-    "en": "English", "hi": "Hindi", "gom": "Gom", "kn": "Kannada", "doi": "Dogri",
-    "brx": "Bodo", "ur": "Urdu", "ta": "Tamil", "ks": "Kashmiri", "as": "Assamese",
-    "bn": "Bengali", "mr": "Marathi", "sd": "Sindhi", "mai": "Maithili", "pa": "Punjabi",
-    "ml": "Malayalam", "mni": "Manipuri", "te": "Telugu", "sa": "Sanskrit", "ne": "Nepali",
-    "sat": "Santali", "gu": "Gujarati", "or": "Odia"
+  const languages: { [key: number]: string } = {
+    0: "English", 1: "Hindi", 2: "Gom", 3: "Kannada", 4: "Dogri",
+    5: "Bodo", 6: "Urdu", 7: "Tamil", 8: "Kashmiri", 9: "Assamese",
+    10: "Bengali", 11: "Marathi", 12: "Sindhi", 13: "Maithili", 14: "Punjabi",
+    15: "Malayalam", 16: "Manipuri", 17: "Telugu", 18: "Sanskrit", 19: "Nepali",
+    20: "Santali", 21: "Gujarati", 22: "Odia"
   };
 
   // ✅ Translate Text
   const handleTranslate = async () => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/translate`, {
-        pipelineTasks: [{
-          taskType: "translation",
-          config: {
-            language: {
-              sourceLanguage: sourceLang,
-              targetLanguage: targetLang,
-            },
-          },
-        }],
+      const response = await axios.post(`${API_BASE_URL}/bhashini/translate`, {
+        source_language: sourceLang,
+        content: text,
+        target_language: targetLang
       });
       setTranslatedText(response.data.translated_content || "Translation Failed");
     } catch (error) {
@@ -45,57 +39,60 @@ const App = () => {
 
   // ✅ Handle File Selection for STT
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) setSelectedFile(file);
+    if (event.target.files) {
+      setSelectedFile(event.target.files[0]);
+    }
   };
 
-  // ✅ Speech-to-Text (STT)
+  // ✅ Speech-to-Text (STT) Function
   const handleSTT = async () => {
-    if (!selectedFile) {
-      alert("Please upload an audio file.");
-      return;
-    }
+  if (!selectedFile) {
+    alert("Please select an audio file!");
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append("audio", selectedFile);
-    formData.append("sourceLanguage", sourceLang);
+  const formData = new FormData();
+  formData.append("audio", selectedFile);
+  formData.append("source_language", sourceLang.toString());
 
-    try {
-      const response = await axios.post(`${API_BASE_URL}/stt`, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+  try {
+    console.log("Sending STT request with:", formData);
 
-      setSttResult(response.data.transcription || "STT failed to process.");
-    } catch (error) {
-      console.error("STT Error:", error);
-      alert("Speech-to-Text failed.");
-    }
-  };
+    const response = await axios.post(`${API_BASE_URL}/bhashini/stt`, formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+
+    console.log("STT Response:", response.data);
+
+    setSttResult(response.data.transcription || "STT Failed");
+  } catch (error) {
+    console.error("STT Error:", error);
+
+    // Provide more user-friendly feedback
+    alert("Failed to process speech-to-text. Please try again.");
+  }
+};
+
 
   // ✅ Text-to-Speech (TTS)
   const handleTTS = async () => {
     try {
       const response = await axios.post(`${API_BASE_URL}/tts`, {
-        pipelineTasks: [{
-          taskType: "tts",
-          config: {
-            language: { sourceLanguage: ttsLang },
-            gender: "female",
-          },
-        }],
+        language: ttsLang,
+        text: text
       });
 
       if (response.data.audio_content) {
-        const audioBlob = new Blob([Uint8Array.from(atob(response.data.audio_content), c => c.charCodeAt(0))], {
-          type: "audio/wav",
-        });
+        const audioBlob = new Blob(
+          [Uint8Array.from(atob(response.data.audio_content), (c) => c.charCodeAt(0))],
+          { type: "audio/wav" }
+        );
         setTtsAudio(URL.createObjectURL(audioBlob));
       } else {
-        alert("TTS failed.");
+        alert("TTS Failed");
       }
     } catch (error) {
       console.error("TTS Error:", error);
-      alert("Text-to-Speech failed.");
     }
   };
 
@@ -115,14 +112,14 @@ const App = () => {
       {/* Language Selection */}
       <div>
         <label>From: </label>
-        <select value={sourceLang} onChange={(e) => setSourceLang(e.target.value)}>
+        <select value={sourceLang} onChange={(e) => setSourceLang(Number(e.target.value))}>
           {Object.entries(languages).map(([code, name]) => (
             <option key={code} value={code}>{name}</option>
           ))}
         </select>
 
         <label style={{ marginLeft: "10px" }}>To: </label>
-        <select value={targetLang} onChange={(e) => setTargetLang(e.target.value)}>
+        <select value={targetLang} onChange={(e) => setTargetLang(Number(e.target.value))}>
           {Object.entries(languages).map(([code, name]) => (
             <option key={code} value={code}>{name}</option>
           ))}
@@ -156,7 +153,7 @@ const App = () => {
       <div style={{ marginTop: "20px" }}>
         <h3>Text-to-Speech (TTS)</h3>
         <label>Choose Language: </label>
-        <select value={ttsLang} onChange={(e) => setTtsLang(e.target.value)}>
+        <select value={ttsLang} onChange={(e) => setTtsLang(Number(e.target.value))}>
           {Object.entries(languages).map(([code, name]) => (
             <option key={code} value={code}>{name}</option>
           ))}
