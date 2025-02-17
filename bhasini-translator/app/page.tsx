@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const API_BASE_URL = "https://speech-translation.onrender.com"; // Update with your FastAPI URL
+const API_BASE_URL = "https://bhashini-python.onrender.com"; // Update with your FastAPI URL
 
 const App = () => {
   const [text, setText] = useState<string>("");
